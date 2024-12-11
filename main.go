@@ -1,5 +1,3 @@
-//go:build wasip2
-
 package main
 
 import (
