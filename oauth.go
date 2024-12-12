@@ -7,19 +7,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	// Generated interfaces
 
-	"github.com/brooksmtownsend/multitiersecurity/gen/wasmcloud/secrets/reveal"
-	secretstore "github.com/brooksmtownsend/multitiersecurity/gen/wasmcloud/secrets/store"
-
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
 
 // loginHandler initiates the OAuth flow by redirecting the user to the OAuth provider's login page.
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	oauthConfig, err := oauthConfig()
 	if err != nil {
 		http.Error(w, "Failed to get OAuth config: "+err.Error(), http.StatusInternalServerError)
@@ -30,7 +27,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // callbackHandler handles the GitHub callback and exchanges the authorization code for an access token.
-func callbackHandler(w http.ResponseWriter, r *http.Request) {
+func callbackHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	oauthConfig, err := oauthConfig()
 	if err != nil {
 		http.Error(w, "Failed to get OAuth config: "+err.Error(), http.StatusInternalServerError)
@@ -57,14 +54,14 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Print user information
-	fmt.Fprintf(w, "User Info: %s\n", userInfo)
+	successResponse(w, userInfo)
 }
 
 // getUserInfo fetches user information from GitHub's API using the authenticated client.
-func getUserInfo(client *http.Client) (string, error) {
+func getUserInfo(client *http.Client) ([]byte, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		return "", fmt.Errorf("creating request: %w", err)
+		return make([]byte, 0), fmt.Errorf("creating request: %w", err)
 	}
 
 	// Add required headers
@@ -73,51 +70,53 @@ func getUserInfo(client *http.Client) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("executing request: %w", err)
+		return make([]byte, 0), fmt.Errorf("executing request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+		return make([]byte, 0), fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var userInfo map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		return "", fmt.Errorf("decoding response: %w", err)
+		return make([]byte, 0), fmt.Errorf("decoding response: %w", err)
 	}
 
 	userInfoJSON, err := json.MarshalIndent(userInfo, "", "  ")
 	if err != nil {
-		return "", fmt.Errorf("formatting JSON: %w", err)
+		return make([]byte, 0), fmt.Errorf("formatting JSON: %w", err)
 	}
-	return string(userInfoJSON), nil
+	return userInfoJSON, nil
 }
 
 // Fetch the OAuth2 config including the client ID and secret
 // as secrets.
 func oauthConfig() (oauth2.Config, error) {
-	clientId := secretstore.Get("client_id")
-	if err := clientId.Err(); err != nil {
-		return oauth2.Config{}, fmt.Errorf("getting client ID: %s", err.String())
-	}
-	clientSecret := secretstore.Get("client_secret")
-	if err := clientSecret.Err(); err != nil {
-		return oauth2.Config{}, fmt.Errorf("getting client secret: %s", err.String())
-	}
+	// clientId := secretstore.Get("client_id")
+	// if err := clientId.Err(); err != nil {
+	// 	return oauth2.Config{}, fmt.Errorf("getting client ID: %s", err.String())
+	// }
+	// clientSecret := secretstore.Get("client_secret")
+	// if err := clientSecret.Err(); err != nil {
+	// 	return oauth2.Config{}, fmt.Errorf("getting client secret: %s", err.String())
+	// }
 
-	fmt.Fprintf(os.Stderr, "Client ID: %d\n", clientId.OK())
-	fmt.Fprintf(os.Stderr, "Client Secret: %d\n", clientSecret.OK())
+	// fmt.Fprintf(os.Stderr, "Client ID: %d\n", clientId.OK())
+	// fmt.Fprintf(os.Stderr, "Client Secret: %d\n", clientSecret.OK())
 
-	clientIdReal := reveal.Reveal(*clientId.OK())
-	clientSecretReal := reveal.Reveal(*clientSecret.OK())
+	// clientIdReal := reveal.Reveal(*clientId.OK())
+	// clientSecretReal := reveal.Reveal(*clientSecret.OK())
 	return oauth2.Config{
-		ClientID:     *clientIdReal.String_(),
-		ClientSecret: *clientSecretReal.String_(),
-		RedirectURL:  "http://127.0.0.1:8000/oauth/callback",
-		Scopes:       []string{},
-		Endpoint:     github.Endpoint,
+		ClientID:     "Ov23lira5kiLoyNvLTYa",
+		ClientSecret: "",
+		// ClientID:     *clientIdReal.String_(),
+		// ClientSecret: *clientSecretReal.String_(),
+		RedirectURL: "http://127.0.0.1:5173/oauth/callback",
+		Scopes:      []string{},
+		Endpoint:    github.Endpoint,
 	}, nil
 	// return oauth2.Config{}, nil
 }

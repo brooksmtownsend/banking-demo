@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	// Generated interfaces
@@ -15,22 +16,28 @@ func Router() http.Handler {
 	// OAuth2 handlers
 	// GET  /login                -> Initiates OAuth flow
 	// GET  /callback             -> Handles OAuth callback
-	router.HandlerFunc(http.MethodGet, "/login", loginHandler)
-	router.HandlerFunc(http.MethodGet, "/oauth/callback", callbackHandler)
+	router.GET("/login", loginHandler)
+	router.GET("/oauth/callback", callbackHandler)
 
 	// Account handlers
 	// TODO: all endpoints gotta be authenticated
-	// GET  /accounts             -> Lists user account IDs
 	// POST /accounts             -> Creates a new account
-	// GET  /accounts/:id/balance -> Retrieves balance for a specific account
-	// POST /accounts/:id/deposit -> Deposits money into an account
-	// POST /accounts/:id/withdraw -> Withdraws money from an account
-	// GET  /accounts/:id/transactions -> Retrieves transaction history
-	router.HandlerFunc(http.MethodGet, "/accounts", accountsHandler)
-	router.HandlerFunc(http.MethodPost, "/accounts", newAccountHandler)
-	router.HandlerFunc(http.MethodGet, "/accounts/:id/balance", accountsHandler)
-	router.HandlerFunc(http.MethodPost, "/accounts/:id/deposit", accountsHandler)
-	router.HandlerFunc(http.MethodPost, "/accounts/:id/withdraw", accountsHandler)
-	router.HandlerFunc(http.MethodGet, "/accounts/:id/transactions", accountsHandler)
+	// GET  /accounts/:id/info -> Retrieves account information
+	// GET  /accounts/:id/transactions -> Retrieves account transaction history
+	// POST /accounts/:id/transactions -> Post a transaction
+	router.POST("/accounts/:id", newAccountHandler)
+	router.GET("/accounts/:id/info", accountInfoHandler)
+	router.GET("/accounts/:id/transactions", getTransactionsHandler)
+	router.POST("/accounts/:id/transactions", postTransactionHandler)
 	return router
+}
+
+type SuccessResponse struct {
+	Data interface{} `json:"data"`
+}
+
+func successResponse(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(SuccessResponse{Data: data})
 }
