@@ -1,0 +1,8 @@
+name = "HTTP Router"
+language = "go"
+type = "provider"
+version = "0.1.7"
+
+[provider]
+vendor = "wasmCloud"
+bin_name = "http-router"

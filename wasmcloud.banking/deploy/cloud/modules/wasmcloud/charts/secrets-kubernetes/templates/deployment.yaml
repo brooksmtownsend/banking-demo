@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: secrets-backend
+        image: ghcr.io/wasmcloud/contrib/secrets-kubernetes:0.1.1
+        args:
+          - -nats-url={{ .Values.nats.address }}
+          - -nats-creds=/nats/nats.creds
+          - -backend-seed=$(backend_seed)
+        env:
+          - name: backend_seed
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: backend-seed
+        volumeMounts:
+          - name: nats-creds
+            mountPath: /nats/nats.creds
+            readOnly: true
+            subPath: nats.creds
+      volumes:
+        - name: nats-creds
+          secret:
+            secretName: {{ .Values.nats.creds.secretName }}

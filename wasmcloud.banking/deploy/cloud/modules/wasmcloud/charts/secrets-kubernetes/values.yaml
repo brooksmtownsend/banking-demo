@@ -1,0 +1,12 @@
+# Default values for secrets-kubernetes.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nats:
+  address: nats://nats.default.svc.cluster.local:4222
+  creds:
+    secretName: ''
+seed:
+  value: ''
+
+replicas: 1

@@ -1,0 +1,27 @@
+replicas: 1
+
+image:
+  repository: "ghcr.io/wasmcloud/wasmcloud"
+  pullPolicy: "IfNotPresent"
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  # Optional: The image to use for the NATS leaf that is deployed alongside the wasmCloud host.
+  # If not provided, the default upstream image will be used.
+  natsLeaf:
+    repository: "nats"
+    pullPolicy: "IfNotPresent"
+    tag: "2.10.18-alpine"
+
+config:
+  # Required: The lattice to connect the hosts to.
+  lattice: "default"
+  # Optional: Additional labels to apply to the host other than the defaults set by the host
+  hostLabels:
+    workload: component
+  # Optional: Allow the host to deploy using the latest tag on OCI components or providers. Defaults to "false".
+  allowLatest: true
+  # Optional: Subject prefix that will be used by the host to query for wasmCloud Secrets.
+  # See https://wasmcloud.com/docs/concepts/secrets for more context
+  secretsTopicPrefix: "wasmcloud.secrets"
+  # Optional: The maximum amount of memory bytes that a component can allocate. Defaults to 10485760 (10mb).
+  # maxLinearMemoryBytes: "20971520"

@@ -1,0 +1,5 @@
+package demo:image-analyzer@0.0.1;
+
+interface analyzer {
+  detect: func(image: list<u8>) -> result<bool,string>;
+}

@@ -1,0 +1,251 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: wasmcloud-space
+  annotations:
+    description: All-in-one demo
+    wasmcloud.dev/authors: wasmCloud team
+    wasmcloud.dev/source-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-image-processor/wadm.yaml
+    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-image-processor/README.md
+    wasmcloud.dev/homepage: https://github.com/wasmCloud/wasmCloud/tree/main/examples/rust/components/http-image-processor
+    wasmcloud.dev/categories: |
+      http,http-server,rust,hello-world,example
+spec:
+  policies:
+    - name: task-db
+      type: policy.secret.wasmcloud.dev/v1alpha1
+      properties:
+        backend: kube
+  components:
+    - name: image-analyzer
+      type: component
+      properties:
+        image: ghcr.io/cosmonic-labs/demo/image-analyzer:0.1.2
+        config:
+          - name: analyzer_config
+            properties:
+              endpoint: 'localhost:11434'
+              model: 'llava'
+              # For wasmcloud.space demo, uncomment the following prompt:
+              prompt: 'Respond only with boolean, does this image contain a boat?'
+              # For wasmcloud.finance demo, uncomment the following prompt:
+              # prompt: 'Respond only with boolean, does this image contain an identification document?'
+              positive_response: 'Yes'
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: component
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: component
+                weight: 50
+
+        - type: link
+          properties:
+            target: httpclient
+            namespace: wasi
+            package: http
+            interfaces: [outgoing-handler]
+
+        - type: link
+          properties:
+            target: task-manager
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+    - name: image-processor
+      type: component
+      properties:
+        image: ghcr.io/cosmonic-labs/demo/image-processor:0.1.1
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: component
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: component
+                weight: 50
+
+        - type: link
+          properties:
+            namespace: wasi
+            package: blobstore
+            interfaces: [blobstore]
+            target:
+              name: blobstore
+              config:
+                - name: blobstore-config
+              secrets:
+                - name: storage_access_key
+                  properties:
+                    policy: task-db
+                    key: azure-creds
+                    field: storage-access-key
+
+        - type: link
+          properties:
+            target: task-manager
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+    - name: task-manager
+      type: component
+      properties:
+        image: ghcr.io/cosmonic-labs/demo/task-manager:0.1.1
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: component
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: component
+                weight: 50
+
+        - type: link
+          properties:
+            namespace: wasmcloud
+            package: postgres
+            interfaces: [query, prepared]
+            target:
+              name: postgres
+              config:
+                - name: pg-task-db
+              secrets:
+                - name: POSTGRES_PASSWORD
+                  properties:
+                    policy: task-db
+                    key: postgres-access
+                    field: postgres-password
+
+    - name: http-router
+      type: capability
+      properties:
+        image: ghcr.io/cosmonic-labs/demo/http-router:0.2.1
+        config:
+          - name: provider_config
+            properties:
+              # valid themes: 'finance', 'space'
+              # remember to change the image analyzer prompt depending on theme
+              theme: 'space'
+              port: '8080'
+              appName: 'wasmcloud.space'
+              # appName: 'wasmcloud.finance'
+              mode: 'behind_proxy'
+      traits:
+        - type: spreadscaler
+          properties:
+            replicas: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: provider
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: provider
+                weight: 50
+
+        - type: link
+          properties:
+            target: task-manager
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+        - type: link
+          properties:
+            target: image-processor
+            namespace: demo
+            package: image-processor
+            interfaces: [resizer]
+
+        - type: link
+          properties:
+            target: image-analyzer
+            namespace: demo
+            package: image-analyzer
+            interfaces: [analyzer]
+
+    - name: blobstore
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/blobstore-azure:0.5.1
+      traits:
+        - type: daemonscaler
+          properties:
+            replicas: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: provider
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: provider
+                weight: 50
+
+    - name: postgres
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/sqldb-postgres:0.5.2
+        config:
+          - name: pg-task-db
+      traits:
+        - type: daemonscaler
+          properties:
+            replicas: 2
+            spread:
+              - name: primary
+                requirements:
+                  cluster: primary
+                  workload: provider
+                weight: 50
+              - name: secondary
+                requirements:
+                  cluster: secondary
+                  workload: provider
+                weight: 50
+
+    - name: httpclient
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/http-client:0.12.0
+      traits:
+        - type: spreadscaler
+          properties:
+            replicas: 1
+            spread:
+              - name: primary
+                requirements:
+                  # To run this in the cluster:
+                  workload: provider
+                  # To run this on your machine connected into the cluster:
+                  # cluster: local
+                  # workload: gpu

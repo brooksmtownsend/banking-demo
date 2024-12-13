@@ -1,0 +1,158 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: wasmcloud-space
+  annotations:
+    description: All-in-one demo
+    wasmcloud.dev/authors: wasmCloud team
+    wasmcloud.dev/source-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-image-processor/wadm.yaml
+    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-image-processor/README.md
+    wasmcloud.dev/homepage: https://github.com/wasmCloud/wasmCloud/tree/main/examples/rust/components/http-image-processor
+    wasmcloud.dev/categories: |
+      http,http-server,rust,hello-world,example
+spec:
+  policies:
+    - name: nats-kv
+      type: policy.secret.wasmcloud.dev/v1alpha1
+      properties:
+        backend: nats-kv
+  components:
+    - name: image-analyzer
+      type: component
+      properties:
+        image: file://./components/image-analyzer/build/image_analyzer.wasm
+        config:
+          - name: analyzer_config
+            properties:
+              endpoint: '127.0.0.1:11434'
+              model: 'llava'
+              # For wasmcloud.space demo, uncomment the following prompt:
+              # prompt: "Respond only with boolean, does this image contain a boat?"
+              # For wasmcloud.finance demo, uncomment the following prompt:
+              prompt: 'Respond only with boolean, does this image contain an identification document?'
+              positive_response: 'Yes'
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 1
+
+        - type: link
+          properties:
+            target: httpclient
+            namespace: wasi
+            package: http
+            interfaces: [outgoing-handler]
+
+        - type: link
+          properties:
+            target: task-manager
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+    - name: image-processor
+      type: component
+      properties:
+        image: file://./components/image-processor/build/image_processor.wasm
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 1
+
+        - type: link
+          properties:
+            target: blobstore
+            namespace: wasi
+            package: blobstore
+            interfaces: [blobstore]
+
+        - type: link
+          properties:
+            target: task-manager
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+    - name: task-manager
+      type: component
+      properties:
+        image: file://./components/task-manager/build/task-manager.wasm
+      traits:
+        - type: spreadscaler
+          properties:
+            instances: 1
+
+        - type: link
+          properties:
+            namespace: wasmcloud
+            package: postgres
+            interfaces: [query, prepared]
+            target:
+              name: postgres
+              config:
+                - name: pg-task-db
+
+    - name: http-router
+      type: capability
+      properties:
+        image: file://./providers/http-router/build/http-router.par.gz
+        config:
+          - name: provider_config
+            properties:
+              # valid themes: 'finance', 'space'
+              # remember to change the image analyzer prompt depending on theme
+              theme: 'finance'
+              port: '8080'
+              # appName: 'wasmcloud.space'
+              appName: 'wasmcloud.finance'
+      traits:
+        - type: link
+          properties:
+            target:
+              name: task-manager
+              # Enables administrative area in finance demo.
+              # Requires extra steps to setup secrets-nats-kv
+              #
+              # secrets:
+              #   - name: admin-password
+              #     properties:
+              #       policy: nats-kv
+              #       key: admin-password
+            namespace: demo
+            package: task-manager
+            interfaces: [tracker]
+
+        - type: link
+          properties:
+            target: image-processor
+            namespace: demo
+            package: image-processor
+            interfaces: [resizer]
+
+        - type: link
+          properties:
+            target: image-analyzer
+            namespace: demo
+            package: image-analyzer
+            interfaces: [analyzer]
+
+    - name: blobstore
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/blobstore-fs:0.9.0
+
+    - name: postgres
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/sqldb-postgres:0.5.2
+        config:
+          - name: pg-task-db
+
+    - name: httpclient
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/http-client:0.12.0
+      traits:
+        - type: spreadscaler
+          properties:
+            replicas: 1

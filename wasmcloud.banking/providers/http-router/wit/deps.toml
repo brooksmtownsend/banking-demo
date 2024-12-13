@@ -1,0 +1,4 @@
+wrpc-http = "https://github.com/wrpc/http/archive/refs/tags/v0.1.0.tar.gz"
+image-analyzer = "../../../wit/image-analyzer"
+image-processor = "../../../wit/image-processor"
+task-manager = "../../../wit/task-manager"

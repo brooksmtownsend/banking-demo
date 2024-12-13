@@ -1,0 +1,38 @@
+[package]
+name = "image-processor"
+edition = "2021"
+version = "0.1.0"
+description = """
+An image processing component
+"""
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = { workspace = true, features = ["default"] }
+bytes = { workspace = true, features = ["default", "serde"] }
+image = { workspace = true, features = [
+  "bmp",
+  "png",
+  "jpeg",
+  "gif",
+  "webp",
+  "tiff",
+] }
+serde = { workspace = true, features = ["std", "derive"] }
+wit-bindgen = { workspace = true, features = ["default"] }
+uuid = { workspace = true, features = ["default", "v4"] }
+
+[workspace.dependencies]
+anyhow = { version = "1", default-features = false }
+bytes = { version = "1", default-features = false }
+image = { version = "0.25", default-features = false }
+multipart = { version = "0.18", default-features = false }
+serde = { version = "1", default-features = false }
+serde_json = { version = "1", default-features = false }
+wit-bindgen = { version = "0.28", default-features = false }
+uuid = { version = "1.3.1", default-features = false }
+

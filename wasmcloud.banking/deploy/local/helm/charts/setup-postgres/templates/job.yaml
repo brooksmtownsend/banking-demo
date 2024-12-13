@@ -1,0 +1,77 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 45
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-it
+          image: chainguard/wait-for-it:latest
+          args:
+            - $(PGHOST):$(PGPORT)
+            - --timeout=15
+            - --strict
+            - --
+            - echo
+            - "postgres is available"
+          env:
+            - name: PGHOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-access
+                  key: postgres-host
+            - name: PGPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-access
+                  key: postgres-port
+      containers:
+      - name: setup-postgres
+        image: chainguard/postgres:latest-dev
+        command: ["/usr/bin/psql"]
+        args:
+          - --file=/tmp/tasks/tasks.sql
+        volumeMounts:
+        - name: tasks-sql-volume
+          mountPath: /tmp/tasks
+        env:
+          - name: PGHOST
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-access
+                key: postgres-host
+          - name: PGPORT
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-access
+                key: postgres-port
+          - name: PGDATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-access
+                key: postgres-database
+          - name: PGUSER
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-access
+                key: postgres-user
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-postgresql
+                key: password
+          - name: PGSSLMODE
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-access
+                key: postgres-ssl-mode
+      volumes:
+        - name: tasks-sql-volume
+          configMap:
+            name: tasks-sql
+      restartPolicy: OnFailure

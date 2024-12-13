@@ -1,0 +1,22 @@
+config:
+  cluster:
+    enabled: true
+    replicas: 3
+  jetstream:
+    enabled: true
+    fileStore:
+      pvc:
+        size: 1Gi
+    merge:
+      domain: default
+  leafnodes:
+    enabled: true
+  websocket:
+    enabled: true
+    port: 4223
+
+service:
+  name: nats
+
+natsBox:
+  enabled: false

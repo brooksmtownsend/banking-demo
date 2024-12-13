@@ -1,0 +1,41 @@
+config:
+  merge:
+    operator: ${operator_jwt}
+    system_account: ${sys_account_id}
+    resolver_preload:
+      ${sys_account_id}: ${sys_account_jwt}
+  resolver:
+    enabled: true
+    merge:
+      type: full
+      interval: 2m
+      timeout: 1.9s
+  cluster:
+    enabled: true
+    replicas: 3
+  jetstream:
+    enabled: true
+    fileStore:
+      pvc:
+        size: 5Gi
+    merge:
+      domain: default
+  leafnodes:
+    enabled: true
+  websocket:
+    enabled: true
+    port: 4223
+  gateway:
+    enabled: true
+    merge:
+      name: ${cluster_name}
+      gateways: [
+        { name: nats-primary, urls: ["nats://nats-primary-headless.default.svc.cluster.local:7222"] },
+        { name: nats-secondary, urls: ["nats://nats-secondary-headless.default.svc.cluster.local:7222"] }
+      ]
+
+service:
+  name: nats
+
+natsBox:
+  enabled: true

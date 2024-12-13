@@ -1,0 +1,32 @@
+[
+  {
+    "index": 0,
+    "id": "atlanta",
+    "displayName": "Azure public MEC with AT&T",
+    "geographyId": "unitedStates",
+    "latitude": 34.394544,
+    "longitude": -83.712717,
+    "presence": "Preview",
+    "location": "Atlanta metro",
+    "description": "Optimal latency experience within 100 miles of Atlanta metro core",
+    "products": "Virtual Machines, VM Scalesets, Kubernetes Service (AKS), Standard Load Balancer, Virtual Network, Disk Storage",
+    "dataResidency": "Stored at rest in the United States",
+    "learnMore": "https://azure.microsoft.com/en-us/global-infrastructure/data-residency/#overview",
+    "contactUs": "https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbRx4AG8rZKBBDoHEYyD9u_bxUMUVaSlhYMFA2RjUzSklKR0YyREZZNURTRi4u"
+  },
+  {
+    "index": 1,
+    "id": "dallas",
+    "displayName": "Azure public MEC with AT&T",
+    "geographyId": "unitedStates",
+    "latitude": 32.7,
+    "longitude": -96.77,
+    "presence": "Preview",
+    "location": "Dallas metro",
+    "description": "Optimal latency experience within 100 miles of Dallas metro core",
+    "products": "Virtual Machines, VM Scalesets, Kubernetes Service (AKS), Standard Load Balancer, Virtual Network, Disk Storage",
+    "dataResidency": "Stored at rest in the United States",
+    "learnMore": "https://azure.microsoft.com/en-us/global-infrastructure/data-residency/#overview",
+    "contactUs": "https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbRx4AG8rZKBBDoHEYyD9u_bxUMUVaSlhYMFA2RjUzSklKR0YyREZZNURTRi4u"
+  }
+]

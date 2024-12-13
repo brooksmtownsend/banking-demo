@@ -1,0 +1,22 @@
+apiVersion: k8s.wasmcloud.dev/v1alpha1
+kind: WasmCloudHostConfig
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  # The number of wasmCloud host pods to run
+  hostReplicas: {{ .Values.replicas }}
+  # The lattice to connect the hosts to
+  lattice: {{ .Values.lattice }}
+  # The address to connect to nats
+  natsAddress: {{ .Values.nats.address }}
+  # Which wasmCloud version to use
+  version: {{ .Values.version }}
+  # Which secret to use for nats leaf creds
+  secretName: {{ .Values.nats.secretName }}
+  secretsTopicPrefix: "wasmcloud.secrets"
+  hostLabels:
+    cloud: {{ .Values.labels.cloud }}
+    region: {{ .Values.labels.region }}
+    cluster: {{ .Values.labels.cluster }}
+    workload: {{ .Values.labels.role }}

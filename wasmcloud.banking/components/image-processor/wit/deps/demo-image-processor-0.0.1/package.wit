@@ -1,0 +1,10 @@
+package demo:image-processor@0.0.1;
+
+interface resizer {
+  upload: func(body: list<u8>) -> result<string, string>;
+
+  resize: func(asset-id: string, width: u32, height: u32) -> result<string, string>;
+
+  serve: func(asset-id: string) -> result<list<u8>, string>;
+}
+

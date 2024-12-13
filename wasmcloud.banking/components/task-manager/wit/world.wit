@@ -1,0 +1,9 @@
+package wasmcloud:component;
+
+world task-manager {
+  include wasmcloud:component-go/imports@0.1.0;
+  import wasmcloud:postgres/query@0.1.1-draft;
+  import wasmcloud:postgres/prepared@0.1.1-draft;
+
+  export demo:task-manager/tracker@0.0.1;
+}

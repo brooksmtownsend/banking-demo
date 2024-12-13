@@ -1,0 +1,83 @@
+package wrpc:http@0.1.0;
+
+interface incoming-handler {
+  use types.{request, response, error-code};
+
+  handle: func(request: request) -> result<response, error-code>;
+}
+
+interface outgoing-handler {
+  use types.{request, response, error-code, request-options};
+
+  handle: func(request: request, options: option<request-options>) -> result<response, error-code>;
+}
+
+interface types {
+  use wasi:http/types@0.2.0.{
+      error-code as wasi-error-code,
+      method as wasi-method,
+      request-options as wasi-request-options,
+      scheme as wasi-scheme,
+  };
+  use wasi:clocks/monotonic-clock@0.2.0.{duration};
+  
+  type error-code = wasi-error-code;
+  type method = wasi-method;
+  type scheme = wasi-scheme;
+  
+  type fields = list<tuple<string, list<list<u8>>>>;
+
+  record request-options {
+      connect-timeout: option<duration>,
+      first-byte-timeout: option<duration>,
+      between-bytes-timeout: option<duration>,
+  }
+  
+  record request {
+      body: stream<u8>,
+      trailers: future<option<fields>>,
+      method: method,
+      path-with-query: option<string>,
+      scheme: option<scheme>,
+      authority: option<string>,
+      headers: fields,
+  }
+  
+  record response {
+      body: stream<u8>,
+      trailers: future<option<fields>>,
+      status: u16,
+      headers: fields,
+  }
+}
+
+/// The `wasi:http/proxy` world captures a widely-implementable intersection of
+/// hosts that includes HTTP forward and reverse proxies. Components targeting
+/// this world may concurrently stream in and out any number of incoming and
+/// outgoing HTTP requests.
+world proxy {
+  /// HTTP proxies have access to time and randomness.
+  include wasi:clocks/imports@0.2.0;
+  import wasi:random/random@0.2.0;
+
+  /// Proxies have standard output and error streams which are expected to
+  /// terminate in a developer-facing console provided by the host.
+  import wasi:cli/stdout@0.2.0;
+  import wasi:cli/stderr@0.2.0;
+
+  /// TODO: this is a temporary workaround until component tooling is able to
+  /// gracefully handle the absence of stdin. Hosts must return an eof stream
+  /// for this import, which is what wasi-libc + tooling will do automatically
+  /// when this import is properly removed.
+  import wasi:cli/stdin@0.2.0;
+
+  /// This is the default handler to use when user code simply wants to make an
+  /// HTTP request (e.g., via `fetch()`).
+  import outgoing-handler;
+
+  /// The host delivers incoming HTTP requests to a component by calling the
+  /// `handle` function of this exported interface. A host may arbitrarily reuse
+  /// or not reuse component instance when delivering incoming HTTP requests and
+  /// thus a component must be able to handle 0..N calls to `handle`.
+  export incoming-handler;
+}
