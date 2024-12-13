@@ -1,36 +1,46 @@
-# HTTP Hello World
+# Banking Demo
 
-This is a simple TinyGo Wasm example that responds with a "Hello World" message for each request.
+TinyGo component that implements a CRUDdy bank application and OAuth2 integration with GitHub, and UI.
 
 ## Prerequisites
 
-- `go` 1.23
-- `tinygo` 0.33
-- [`wash`](https://wasmcloud.com/docs/installation) 0.35.0
-- `wasmtime` 25.0.0 (if running with wasmtime)
+- `go`
+- `tinygo`
+- [`wash`](https://wasmcloud.com/docs/installation)
+- `npm`
 
 ## Building
+
+Make sure to replace the `client_secret` in [oauth.go](./oauth.go) with the GitHub client secret. Instructions for secrets to follow.
 
 ```bash
 wash build
 ```
 
-## Running with wasmtime
+## Running
 
-You must have wasmtime 25.0.0 for this to work. Make sure to follow the build step above first.
-
-```bash
-wasmtime serve -Scommon ./build/http_hello_world_s.wasm
-```
-
-## Running with wasmCloud
-
-Make sure to follow the build steps above, and replace the file path in [the wadm manifest](./wadm.yaml) with the absolute path to your local built component.
+Run the UI in one terminal with:
 
 ```shell
-wash up -d
-wash app deploy ./wadm.yaml
-curl http://localhost:8080
+cd wasmcloud.banking/client/apps/banking
+npm i
+npm run dev
+```
+
+Run the backend in another terminal with:
+
+```shell
+wash dev
+```
+
+## Interacting with the demo
+
+Navigate to [http://127.0.0.1:5173](http://127.0.0.1:5173) and sign in to view your account.
+
+After signing in, run the script to add transactions. The `BANK_USER` is your GitHub username:
+
+```shell
+BANK_USER=brooksmtownsend ./new-transaction.sh
 ```
 
 ## Adding Capabilities
