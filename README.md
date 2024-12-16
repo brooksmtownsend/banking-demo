@@ -14,20 +14,14 @@ TinyGo component that implements a CRUDdy bank application and OAuth2 integratio
 Make sure to replace the `client_secret` in [oauth.go](./oauth.go) with the GitHub client secret. Instructions for secrets to follow.
 
 ```bash
+pushd wasmcloud.banking
+npm i
+npm run build --workspaces --if-present
+popd
 wash build
 ```
 
 ## Running
-
-Run the UI in one terminal with:
-
-```shell
-cd wasmcloud.banking/client/apps/banking
-npm i
-npm run dev
-```
-
-Run the backend in another terminal with:
 
 ```shell
 wash dev
@@ -35,7 +29,7 @@ wash dev
 
 ## Interacting with the demo
 
-Navigate to [http://127.0.0.1:5173](http://127.0.0.1:5173) and sign in to view your account.
+Navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000) and sign in to view your account.
 
 After signing in, run the script to add transactions. The `BANK_USER` is your GitHub username:
 

@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: ConfigResponse = {
     health: '/api/health',
     auth: '/api/auth',
     transactions: '/accounts/:id/transactions',
-    oauthCallback: '/oauth/callback?code=:code&state=:state',
+    oauthCallback: '/auth/callback?code=:code&state=:state',
     createUser: '/accounts/:id',
   },
 };
@@ -47,7 +47,6 @@ function getConfigJson(): {read: () => ConfigResponse} {
     .then((res) => (response = res))
     .catch((err) => {
       console.error('Failed to load config.json:', err);
-      console.log('Using default config');
       response = DEFAULT_CONFIG;
     });
 

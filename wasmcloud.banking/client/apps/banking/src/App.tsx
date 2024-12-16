@@ -10,7 +10,6 @@ import {
   NotificationDropdown,
 } from '@/features/notifications/components/Notifications';
 import {SettingsDialog} from '@/features/settings/components/SettingsDialog';
-import {useApi} from '@repo/common/services/backend/useApi';
 
 export interface UserInformation {
   login: string;
@@ -21,27 +20,23 @@ export interface UserInformation {
 function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [user, setUser] = React.useState<UserInformation | null>(null);
-  const api = useApi();
 
   React.useEffect(() => {
-    if (window.location.pathname === '/oauth/callback' && user === null) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const state = urlParams.get('state');
-      // Fetch OAuth information here
-      // TODO: If error, redirect back to login page
-      api
-        .oauthCallback(code, state)
-        .then((res) => {
-          const decoded = window.atob(res.data);
-          const parsed = JSON.parse(decoded) as UserInformation;
-          setUser(parsed);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    if (window.location.pathname === '/' && user === null) {
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        return parts.pop()?.split(';').shift();
+      };
+
+      const user_info = getCookie('user');
+      if (user_info !== undefined && user_info !== null && user_info !== '') {
+        const decoded = atob(user_info);
+        const parsed = JSON.parse(decoded) as UserInformation;
+        setUser(parsed);
+      }
     }
-  }, [api, user]);
+  }, [user]);
 
   return (
     <div>

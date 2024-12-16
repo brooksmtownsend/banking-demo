@@ -29,12 +29,13 @@ var staticAssets embed.FS
 
 var currentUiConfig = uiConfig{
 	BaseURL: "/",
-	Theme:   "space",
-	AppName: "WAwesomeCloud",
+	Theme:   "banking",
+	AppName: "wasmCloud Banking",
 	ApiPaths: apiPaths{
-		Task:   "/api/tasks/:id",
-		Tasks:  "/api/tasks",
-		Upload: "/api/analyze",
+		CreateUser:   "/accounts/:id",
+		Transactions: "/accounts/:id/transactions",
+		Login:        "/login",
+		Callback:     "/oauth/callback",
 	},
 }
 
@@ -87,9 +88,10 @@ type uiConfig struct {
 }
 
 type apiPaths struct {
-	Task   string `json:"task"`
-	Tasks  string `json:"tasks"`
-	Upload string `json:"upload"`
+	CreateUser   string `json:"createUser"`
+	Transactions string `json:"transactions"`
+	Login        string `json:"login"`
+	Callback     string `json:"callback"`
 }
 
 func run() error {
@@ -141,15 +143,13 @@ func run() error {
 	}
 
 	mux := http.NewServeMux()
-	tasksProxy := &TasksProxy{server: server, tracer: otel.Tracer("tasks-proxy")}
-	processProxy := &ProcessProxy{server: server, tracer: otel.Tracer("process-proxy")}
-	serveProxy := &ServeProxy{server: server, tracer: otel.Tracer("statistics-proxy")}
+	accountsProxy := &AccountsProxy{server: server, tracer: otel.Tracer("accounts-proxy")}
+	authProxy := &AuthProxy{server: server, tracer: otel.Tracer("auth-proxy")}
 	mux.Handle("/config.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { json.NewEncoder(w).Encode(currentUiConfig) }))
-	mux.Handle("/api/tasks", tasksProxy)
-	mux.Handle("/api/auth", authMiddleware(tasksProxy))
-	mux.Handle("/api/tasks/{id...}", tasksProxy)
-	mux.Handle("/api/analyze", determineGeoIP(processProxy))
-	mux.Handle("/api/blob/{asset...}", serveProxy)
+	mux.Handle("/accounts/{id...}/transactions", accountsProxy)
+	mux.Handle("/accounts/{id...}", accountsProxy)
+	mux.Handle("/login", authProxy)
+	mux.Handle("/oauth/callback", authProxy)
 
 	fs := http.FileServer(http.FS(assets))
 	mux.Handle("/", http.StripPrefix("/", fs))

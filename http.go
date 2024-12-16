@@ -1,13 +1,18 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
+	"io/fs"
 	"net/http"
 
 	// Generated interfaces
 
 	"github.com/julienschmidt/httprouter"
 )
+
+//go:embed wasmcloud.banking/client/apps/banking/dist
+var staticAssets embed.FS
 
 // Router creates a [http.Handler] and registers the application-specific
 // routes with their respective handlers for the application.
@@ -29,7 +34,20 @@ func Router() http.Handler {
 	router.GET("/accounts/:id/info", accountInfoHandler)
 	router.GET("/accounts/:id/transactions", getTransactionsHandler)
 	router.POST("/accounts/:id/transactions", postTransactionHandler)
+	router.GET("/", assetHandler)
+	router.GET("/assets/*asset", assetHandler)
+	router.GET("/images/*image", assetHandler)
 	return router
+}
+
+func assetHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	assets, err := fs.Sub(staticAssets, "wasmcloud.banking/client/apps/banking/dist")
+	if err != nil {
+		http.Error(w, "Couldn't find static assets", http.StatusInternalServerError)
+		return
+	}
+	fs := http.FileServer(http.FS(assets))
+	http.StripPrefix("/", fs).ServeHTTP(w, r)
 }
 
 type SuccessResponse struct {

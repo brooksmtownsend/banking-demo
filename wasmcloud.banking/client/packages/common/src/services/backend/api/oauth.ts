@@ -3,7 +3,6 @@ import {apiFetch} from '#services/backend/utils/apiFetch.ts';
 import {getBaseUrl} from '#services/backend/utils/getBaseUrl.ts';
 import {isApiSuccessResponse} from '#services/backend/utils/typeGuards.ts';
 import {ConfigResponse} from '#services/config/context.tsx';
-import {Transaction} from '#services/user/hooks/useTransactions.ts';
 
 type OauthCallbackResponse = ApiSuccessResponse<string>;
 

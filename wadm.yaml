@@ -1,32 +1,31 @@
 apiVersion: core.oam.dev/v1beta1
 kind: Application
 metadata:
-  name: dev-48mklb-http-hello-world
+  name: wasmcloud-banking
   annotations:
-    version: 01JCN98EH2ZARVFAWFSNVW2WNM
+    app: banking
   labels:
     wasmcloud.dev/generated-by: wash-dev
 spec:
-  policies:
-    - name: nats-kv
-      type: policy.secret.wasmcloud.dev/v1alpha1
-      properties:
-        backend: nats-kv
+  # policies:
+  #   - name: nats-kv
+  #     type: policy.secret.wasmcloud.dev/v1alpha1
+  #     properties:
+  #       backend: nats-kv
   components:
-    - name: 48mklb-http-hello-world
+    - name: api
       type: component
       properties:
-        image: file:///Users/brooks/demo/multitier-security/build/http_hello_world_s.wasm
-        id: 48mklb-http-hello-world
-        secrets:
-          - name: client_id
-            properties:
-              policy: nats-kv
-              key: client_id
-          - name: client_secret
-            properties:
-              policy: nats-kv
-              key: client_secret
+        image: file:///Users/brooks/github.com/brooksmtownsend/banking-demo/build/banking-app_s.wasm
+        # secrets:
+        #   - name: client_id
+        #     properties:
+        #       policy: nats-kv
+        #       key: client_id
+        #   - name: client_secret
+        #     properties:
+        #       policy: nats-kv
+        #       key: client_secret
       traits:
         - type: spreadscaler
           properties:
@@ -38,27 +37,24 @@ spec:
             interfaces:
               - outgoing-handler
             target:
-              name: 48mklb-dep-http-client
-    - name: 48mklb-dep-http-server
+              name: http-client
+    - name: http-server
       type: capability
       properties:
-        image: ghcr.io/wasmcloud/http-server:0.24.0
+        image: file:///Users/brooks/github.com/brooksmtownsend/banking-demo/wasmcloud.banking/providers/http-router/build/http-router.par.gz
+        config:
+          - name: wasi-http-config
+            properties:
+              port: '8000'
+              theme: 'banking'
       traits:
         - type: link
           properties:
+            target: api
             namespace: wasi
             package: http
-            interfaces:
-              - incoming-handler
-            source:
-              config:
-                - name: wasi-http-config
-                  properties:
-                    address: 127.0.0.1:8000
-            target:
-              name: 48mklb-http-hello-world
-    - name: 48mklb-dep-http-client
+            interfaces: [incoming-handler]
+    - name: http-client
       type: capability
       properties:
         image: ghcr.io/wasmcloud/http-client:0.12.1
-      traits: []

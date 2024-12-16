@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,8 +54,18 @@ func callbackHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		return
 	}
 
-	// Print user information
-	successResponse(w, userInfo)
+	// Create a new cookie
+	cookie := &http.Cookie{
+		Name:  "user",
+		Value: base64.RawStdEncoding.EncodeToString(userInfo),
+		Path:  "/",
+	}
+
+	// Set the cookie in the response
+	http.SetCookie(w, cookie)
+
+	// Add user info to request query
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // getUserInfo fetches user information from GitHub's API using the authenticated client.
@@ -85,7 +96,7 @@ func getUserInfo(client *http.Client) ([]byte, error) {
 		return make([]byte, 0), fmt.Errorf("decoding response: %w", err)
 	}
 
-	userInfoJSON, err := json.MarshalIndent(userInfo, "", "  ")
+	userInfoJSON, err := json.Marshal(userInfo)
 	if err != nil {
 		return make([]byte, 0), fmt.Errorf("formatting JSON: %w", err)
 	}
@@ -114,7 +125,7 @@ func oauthConfig() (oauth2.Config, error) {
 		ClientSecret: "",
 		// ClientID:     *clientIdReal.String_(),
 		// ClientSecret: *clientSecretReal.String_(),
-		RedirectURL: "http://127.0.0.1:5173/oauth/callback",
+		RedirectURL: "http://127.0.0.1:8000/oauth/callback",
 		Scopes:      []string{},
 		Endpoint:    github.Endpoint,
 	}, nil

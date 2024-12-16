@@ -26,12 +26,9 @@ setup: ## Setup docker, postgres, and ollama. Requires NATS to be running for co
 build-ui: ## Build the UI
 	npm i
 	npm run build --workspaces --if-present
-	rm -rf providers/http-router/apps/space || true
-	mkdir providers/http-router/apps/space
-	cp -R client/apps/space/dist providers/http-router/apps/space/
-	rm -rf providers/http-router/apps/finance || true
-	mkdir providers/http-router/apps/finance
-	cp -R client/apps/finance/dist providers/http-router/apps/finance/
+	rm -rf providers/http-router/apps/banking || true
+	mkdir providers/http-router/apps/banking
+	cp -R client/apps/banking/dist providers/http-router/apps/banking/
 
 build: ## Build all providers and components
 	${MAKE} build-ui
