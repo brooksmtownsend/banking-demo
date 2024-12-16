@@ -1,9 +1,0 @@
-package demo:component;
-
-world image-analyzer {
-  import wasi:config/runtime@0.2.0-draft;
-  import wasi:logging/logging@0.1.0-draft;
-  import wasi:http/outgoing-handler@0.2.0;
-
-  export demo:image-analyzer/analyzer@0.0.1;
-}

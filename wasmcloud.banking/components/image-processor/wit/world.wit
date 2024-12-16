@@ -1,8 +1,0 @@
-package demo:component;
-
-world image-processor {
-  import wasi:logging/logging@0.1.0-draft;
-  import wasi:blobstore/blobstore@0.2.0-draft;
-
-  export demo:image-processor/resizer@0.0.1;
-}

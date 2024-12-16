@@ -4,12 +4,6 @@ import {PageContent} from '@/layout/PageContent';
 import {Sidebar} from '@/layout/Sidebar';
 import {TopNav} from '@/layout/TopNav';
 import {Dashboard} from '@/features/dashboard/components/Dashboard';
-import {
-  Notifications,
-  NotificationButton,
-  NotificationDropdown,
-} from '@/features/notifications/components/Notifications';
-import {SettingsDialog} from '@/features/settings/components/SettingsDialog';
 
 export interface UserInformation {
   login: string;
@@ -43,15 +37,9 @@ function App() {
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
         <Navigation />
       </Sidebar>
-      <TopNav setSidebarOpen={setSidebarOpen} user={user}>
-        <Notifications>
-          <NotificationButton />
-          <NotificationDropdown />
-        </Notifications>
-      </TopNav>
+      <TopNav setSidebarOpen={setSidebarOpen} user={user}></TopNav>
       <PageContent>
         <Dashboard user={user} />
-        <SettingsDialog />
       </PageContent>
     </div>
   );

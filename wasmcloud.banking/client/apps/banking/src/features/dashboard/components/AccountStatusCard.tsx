@@ -1,25 +1,11 @@
 import * as React from 'react';
 import {LogInIcon, VerifiedIcon} from 'lucide-react';
 import {Button} from '@repo/ui/Button';
-import {useNotifications} from '@/features/notifications/hooks/useNotifications';
 import {DashboardCard} from './DashboardCard';
 import {UserInformation} from '@/App';
 
 export function AccountStatusCard({user}: {user: UserInformation | null}): React.ReactElement {
-  const {notify, clearAll} = useNotifications();
   const stage = user ? 'success' : 'failed';
-
-  React.useEffect(() => {
-    clearAll();
-    switch (stage) {
-      case 'success':
-        notify('Your identity has been verified successfully!', 'low');
-        break;
-      case 'failed':
-        notify('Verification Failed', 'low');
-        break;
-    }
-  }, [stage, notify, clearAll]);
 
   const {text, title} = (
     {

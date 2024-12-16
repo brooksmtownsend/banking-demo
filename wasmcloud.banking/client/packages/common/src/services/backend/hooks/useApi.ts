@@ -1,5 +1,4 @@
 import {useConfig} from '#services/config/useConfig.ts';
-import {oauthCallback} from '../api/oauth';
 
 type ApiServices = typeof import('../api').default;
 
@@ -32,13 +31,7 @@ function useApi() {
   const api = apiLoader.load();
 
   return {
-    analyze: api.analyze(config),
-    health: api.health(config),
-    tasks: api.tasks(config),
-    task: api.task(config),
-    auth: api.auth(config),
     transactions: api.transactions(config),
-    oauthCallback: api.oauthCallback(config),
     createUser: api.createUser(config),
   };
 }

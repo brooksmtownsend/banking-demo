@@ -1,4 +1,3 @@
-import {settingsStore} from '@/features/settings/state/store';
 import {cn} from '@repo/ui/cn';
 import {ThemeToggle} from '@repo/ui/theme/ThemeToggle';
 import {
@@ -18,7 +17,7 @@ const navigation = [
   {name: 'Accounts', href: '#', icon: ChartPieIcon, current: false},
   {
     name: 'Settings',
-    onClick: () => settingsStore.getState().showDialog(),
+    onClick: () => {},
     icon: SettingsIcon,
     current: false,
   },

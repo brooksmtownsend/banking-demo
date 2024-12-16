@@ -4,13 +4,7 @@ export type ConfigResponse = {
   baseUrl: string;
   appName: string;
   apiPaths: {
-    tasks: string;
-    task: string;
-    analyze: string;
-    health: string;
-    auth: string;
     transactions: string;
-    oauthCallback: string;
     createUser: string;
   };
 };
@@ -19,13 +13,7 @@ const DEFAULT_CONFIG: ConfigResponse = {
   baseUrl: '/',
   appName: 'wasmCloud Banking',
   apiPaths: {
-    tasks: '/api/tasks',
-    task: '/api/tasks/:id',
-    analyze: '/api/analyze',
-    health: '/api/health',
-    auth: '/api/auth',
     transactions: '/accounts/:id/transactions',
-    oauthCallback: '/auth/callback?code=:code&state=:state',
     createUser: '/accounts/:id',
   },
 };

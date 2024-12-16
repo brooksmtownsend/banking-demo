@@ -29,10 +29,6 @@ class ApiError extends Error {
   }
 }
 
-export type {Task, PartialTask} from './api/tasks';
-
-export type {AuthRequestBody} from './api/auth';
-
 export type {ApiResponse, ApiErrorResponse, ApiSuccessResponse};
 
 export {ApiError};
