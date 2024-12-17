@@ -7,25 +7,13 @@ metadata:
   labels:
     wasmcloud.dev/generated-by: wash-dev
 spec:
-  # policies:
-  #   - name: nats-kv
-  #     type: policy.secret.wasmcloud.dev/v1alpha1
-  #     properties:
-  #       backend: nats-kv
   components:
     - name: api
       type: component
       properties:
-        image: file:///Users/brooks/github.com/brooksmtownsend/banking-demo/build/banking-app_s.wasm
-        # secrets:
-        #   - name: client_id
-        #     properties:
-        #       policy: nats-kv
-        #       key: client_id
-        #   - name: client_secret
-        #     properties:
-        #       policy: nats-kv
-        #       key: client_secret
+        # image: file:///banking-app_s.wasm
+        # Alternatively, to use the published version
+        image: ghcr.io/brooksmtownsend/banking-demo:0.1.0
       traits:
         - type: spreadscaler
           properties:
@@ -34,19 +22,30 @@ spec:
           properties:
             namespace: wasi
             package: http
-            interfaces:
-              - outgoing-handler
+            interfaces: [outgoing-handler]
             target:
               name: http-client
+        - type: link
+          properties:
+            namespace: wasi
+            package: keyvalue
+            interfaces: [store]
+            target:
+              name: nats-kv
+              config:
+                - name: wasi-keyvalue-config
+                  properties:
+                    cluster_uri: nats://127.0.0.1:4222
+                    enable_bucket_auto_create: 'true'
+                    bucket: wasmcloud
     - name: http-server
       type: capability
       properties:
-        image: file:///Users/brooks/github.com/brooksmtownsend/banking-demo/wasmcloud.banking/providers/http-router/build/http-router.par.gz
+        image: ghcr.io/wasmcloud/http-server:0.24.0
         config:
           - name: wasi-http-config
             properties:
-              port: '8000'
-              theme: 'banking'
+              address: '0.0.0.0:8000'
       traits:
         - type: link
           properties:
@@ -58,3 +57,7 @@ spec:
       type: capability
       properties:
         image: ghcr.io/wasmcloud/http-client:0.12.1
+    - name: nats-kv
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/keyvalue-nats:0.3.1

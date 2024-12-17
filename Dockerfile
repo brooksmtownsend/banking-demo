@@ -48,4 +48,4 @@ COPY --from=builder /usr/local/bin/wash /usr/local/bin/wash
 EXPOSE 4222/tcp
 EXPOSE 8000/tcp
 ENV WASMCLOUD_NATS_HOST=0.0.0.0
-CMD ["wash"]
+CMD ["wash", "up"]

@@ -14,6 +14,7 @@ wasmCloud capability provider OCI images needed:
 - `ghcr.io/wasmcloud/keyvalue-nats:0.3.1`
 - `ghcr.io/wasmcloud/http-client:0.12.1`
 - `ghcr.io/wasmcloud/http-server:0.24.0`
+- `ghcr.io/brooksmtownsend/banking-demo:0.1.0` (if using the prebuilt component)
 
 ## Building
 
@@ -43,7 +44,7 @@ docker run --rm -p 4222:4222 -p 8000:8000 -it wasmcloud-banking:latest wash up
 Once your container is up and running, use `wash` to deploy the application.
 
 ```shell
-wash app deploy ./docker-application.yaml
+wash app deploy ./application.yaml
 ```
 
 ## Interacting with the demo
